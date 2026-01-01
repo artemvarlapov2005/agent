@@ -6,6 +6,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 application {
@@ -30,10 +31,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.7.3")
     implementation("ch.qos.logback:logback-classic:1.4.8")
+    implementation("org.matkini:AWG-API:1.0-SNAPSHOT")
 }
 
 kotlin {
-    jvmToolchain { languageVersion.set(JavaLanguageVersion.of("17")) }
+    jvmToolchain { languageVersion.set(JavaLanguageVersion.of("21")) }
     sourceSets.main { kotlin.srcDir("build/generated/ksp/main/kotlin") }
     sourceSets.test { kotlin.srcDir("build/generated/ksp/test/kotlin") }
 }
