@@ -1,15 +1,19 @@
-package org.matkini.service
+package org.matkini.action
 
 import org.matkini.PeerSection
 import org.matkini.adapter.NetworkManagerAdapter
 import org.matkini.dto.ClientResult
+import org.matkini.service.ConfigFileService
+import org.matkini.service.IpAllocator
+import org.matkini.service.NetworkManagerService
+import org.matkini.service.PublicKeyProvider
 import ru.tinkoff.kora.common.Component
 
 @Component
 class PutClientAction(
     val configFileService: ConfigFileService,
     val ipAllocator: IpAllocator,
-    val networkManagerAdapter: NetworkManagerAdapter,
+    val networkManagerService: NetworkManagerService,
     val publicKeyProvider: PublicKeyProvider
 ) {
     fun put(pubKey : String) : ClientResult? {
@@ -22,8 +26,8 @@ class PutClientAction(
         }
 
         val ip = ipAllocator.findFreeIp(
-            config.peerSections.flatMap { it.allowedIps }.toSet(),
-            networkManagerAdapter.getAllowedSubNets())
+            (config.peerSections.flatMap { it.allowedIps } + config.interfaceSection.address).toSet(),
+            networkManagerService.getAllowedSubNets())
 
         if (ip == null) return null
 

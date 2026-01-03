@@ -11,8 +11,8 @@ class IpAllocator {
     ) : IpAddress? {
         val used = busyIps.map { it.ipToInt() }
 
-        allowedSubNets.forEach {
-            (it.getNetworkInt() + 1..it.getBroadcastInt() - 1).forEach {
+        allowedSubNets.forEach { net ->
+            (net.getNetworkInt() + 1..net.getBroadcastInt() - 1).forEach {
                 if (!used.contains(it)) {
                     return IpAddress.fromIpInt(it)
                 }
