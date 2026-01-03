@@ -13,8 +13,7 @@ import ru.tinkoff.kora.json.common.annotation.Json
 
 @Component
 @HttpController
-class ClientController(val putClientAction: PutClientAction,
-    val configFileService: ConfigFileService) {
+class ClientController(val putClientAction: PutClientAction) {
 
     @HttpRoute(method = HttpMethod.PUT, path = "/client")
     @Json
