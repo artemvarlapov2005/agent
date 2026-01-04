@@ -1,9 +1,7 @@
 package org.matkini.controller
 
-import org.matkini.ConfigFile
-import org.matkini.dto.ClientResult
+import org.matkini.shared.ClientResult
 import org.matkini.action.PutClientAction
-import org.matkini.service.ConfigFileService
 import ru.tinkoff.kora.common.Component
 import ru.tinkoff.kora.http.common.HttpMethod
 import ru.tinkoff.kora.http.common.annotation.HttpRoute
@@ -20,11 +18,13 @@ class ClientController(val putClientAction: PutClientAction) {
     fun putClient(
        @Json body : PutClientRequest
     ): ClientResult = runCatching {
-            putClientAction.put(body.publicKey)
+            putClientAction.put(body)
         }.getOrElse { e ->
             throw e
         } ?: throw HttpServerResponseException.of(503, "Не удалось найти свободный айпи")
 }
 
 @Json
-data class PutClientRequest(val publicKey: String)
+data class PutClientRequest(
+    val publicKey: String,
+    val interfaceName: String)

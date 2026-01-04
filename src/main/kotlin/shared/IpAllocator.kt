@@ -1,4 +1,4 @@
-package org.matkini.service
+package org.matkini.util
 
 import org.matkini.IpAddress
 import ru.tinkoff.kora.common.Component
@@ -7,11 +7,11 @@ import ru.tinkoff.kora.common.Component
 class IpAllocator {
     fun findFreeIp(
         busyIps: Set<IpAddress>,
-        allowedSubNets: List<IpAddress>
+        subNet: IpAddress
     ) : IpAddress? {
         val used = busyIps.map { it.ipToInt() }
 
-        allowedSubNets.forEach { net ->
+        subNet.let { net ->
             (net.getNetworkInt() + 1..net.getBroadcastInt() - 1).forEach {
                 if (!used.contains(it)) {
                     return IpAddress.fromIpInt(it)

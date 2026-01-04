@@ -33,6 +33,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.4.8")
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
     implementation("org.matkini:AWG-API:1.0-SNAPSHOT")
+    implementation("ru.tinkoff.kora:cache-caffeine")
 }
 
 kotlin {

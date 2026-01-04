@@ -1,47 +1,53 @@
 package org.matkini.action
 
+import org.matkini.ConfigFile
 import org.matkini.PeerSection
-import org.matkini.adapter.NetworkManagerAdapter
-import org.matkini.dto.ClientResult
-import org.matkini.service.ConfigFileService
-import org.matkini.service.IpAllocator
-import org.matkini.service.NetworkManagerService
-import org.matkini.service.PublicKeyProvider
+import org.matkini.controller.PutClientRequest
+import org.matkini.shared.ClientResult
+import org.matkini.service.InterfaceStore
+import org.matkini.util.IpAllocator
+import org.matkini.util.getPublic
+import org.matkini.util.privateKey
 import ru.tinkoff.kora.common.Component
 
 @Component
 class PutClientAction(
-    val configFileService: ConfigFileService,
+    val interfaceStore: InterfaceStore,
     val ipAllocator: IpAllocator,
-    val networkManagerService: NetworkManagerService,
-    val publicKeyProvider: PublicKeyProvider
 ) {
-    fun put(pubKey : String) : ClientResult? {
-        val config = configFileService.get()
+    fun put(request: PutClientRequest) : ClientResult? {
+        val config = interfaceStore.get(request.interfaceName)
+            ?: throw IllegalArgumentException("Interface name to found")
 
-        config.peerSections.firstOrNull { it.publicKey == pubKey }?.let {
+        val configPublic = getPublic(config.privateKey())
+
+        config.peerSections.firstOrNull { it.publicKey == request.publicKey }?.let {
             return ClientResult(
-                publicKeyProvider.provide(),
+                configPublic,
                 it.allowedIps.first().address.toString())
         }
 
         val ip = ipAllocator.findFreeIp(
             (config.peerSections.flatMap { it.allowedIps } + config.interfaceSection.address).toSet(),
-            networkManagerService.getAllowedSubNets())
+            config.subNet())
 
         if (ip == null) return null
 
         val updatedConfig = config.copy(
             peerSections = config.peerSections + PeerSection(
-                pubKey,
+                request.publicKey,
                 allowedIps = listOf(ip.copy(mask = "32"))
             )
         )
 
-        configFileService.update(updatedConfig)
+        interfaceStore.update(
+            request.interfaceName,
+            updatedConfig)
 
         return ClientResult(
-            publicKeyProvider.provide(),
+            configPublic,
             ip.toString())
     }
 }
+
+fun ConfigFile.subNet() = this.interfaceSection.address.getNetwork()

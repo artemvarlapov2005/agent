@@ -1,7 +1,7 @@
 package org.matkini.adapter
 
-import org.matkini.ConfigFile
 import org.matkini.IpAddress
+import org.matkini.shared.ExchangeInterfaceDto
 import org.matkini.service.AgentData
 import ru.tinkoff.kora.common.Component
 
@@ -9,17 +9,11 @@ import ru.tinkoff.kora.common.Component
 class DefaultNetworkManagerAdapter(
     val agentData: AgentData
 ) : NetworkManagerAdapter {
-    override fun getAllowedSubNets(): List<IpAddress> {
-        return listOf(IpAddress("10.0.0.0", "24"))
-    }
-
-    override fun getCurrentConfig(current : ConfigFile?): ConfigFile {
+    override fun exchangeConfig(current : List<ExchangeInterfaceDto>?): List<ExchangeInterfaceDto> {
         return current!!
     }
 }
 
 interface NetworkManagerAdapter {
-    fun getAllowedSubNets() : List<IpAddress>
-
-    fun getCurrentConfig(current: ConfigFile?) : ConfigFile
+    fun exchangeConfig(current : List<ExchangeInterfaceDto>?): List<ExchangeInterfaceDto>
 }
