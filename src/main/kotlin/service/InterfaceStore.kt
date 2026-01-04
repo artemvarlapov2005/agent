@@ -3,19 +3,12 @@ package org.matkini.service
 import org.matkini.ConfigFile
 import org.matkini.Reader
 import org.matkini.Writer
+import org.matkini.shared.AgentData
 import ru.tinkoff.kora.application.graph.GraphInterceptor
 import ru.tinkoff.kora.common.Component
 import ru.tinkoff.kora.config.common.annotation.ConfigSource
 import java.nio.file.Path
 import kotlin.io.path.createFile
-
-@ConfigSource("config")
-interface AgentData {
-    fun folder(): String
-    fun masterPassword(): String
-    fun serverName(): String
-    fun interfaces(): String
-}
 
 @Component
 class InterfaceStore(private val agentData: AgentData) {
@@ -35,5 +28,7 @@ class InterfaceStore(private val agentData: AgentData) {
             diskData[interfaceName] = configFile
         }
 
-    private fun getPath(interfaceName: String) = Path.of(agentData.folder()).resolve("$interfaceName.conf")
+    private fun getPath(interfaceName: String) = computePath(Path.of(agentData.folder()), interfaceName)
 }
+
+fun computePath(basePath: Path, interfaceName: String) = basePath.resolve("$interfaceName.conf")

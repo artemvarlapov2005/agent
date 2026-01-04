@@ -1,8 +1,8 @@
 package org.matkini.adapter
 
 import org.matkini.IpAddress
+import org.matkini.shared.AgentData
 import org.matkini.shared.ExchangeInterfaceDto
-import org.matkini.service.AgentData
 import ru.tinkoff.kora.common.Component
 
 @Component

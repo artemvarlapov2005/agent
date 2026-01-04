@@ -1,4 +1,4 @@
-package org.matkini.util
+package org.matkini.shared
 
 import org.matkini.IpAddress
 import ru.tinkoff.kora.common.Component
@@ -11,14 +11,10 @@ class IpAllocator {
     ) : IpAddress? {
         val used = busyIps.map { it.ipToInt() }
 
-        subNet.let { net ->
-            (net.getNetworkInt() + 1..net.getBroadcastInt() - 1).forEach {
-                if (!used.contains(it)) {
-                    return IpAddress.fromIpInt(it)
-                }
-            }
-        }
-
-        return null;
+        return IpAddress.fromIpInt(
+            (subNet.getNetworkInt() + 1..subNet.getBroadcastInt() - 1)
+                .firstOrNull {
+                    !used.contains(it)
+                } ?: return null)
     }
 }

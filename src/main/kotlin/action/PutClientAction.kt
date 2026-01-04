@@ -5,7 +5,7 @@ import org.matkini.PeerSection
 import org.matkini.controller.PutClientRequest
 import org.matkini.shared.ClientResult
 import org.matkini.service.InterfaceStore
-import org.matkini.util.IpAllocator
+import org.matkini.shared.IpAllocator
 import org.matkini.util.getPublic
 import org.matkini.util.privateKey
 import ru.tinkoff.kora.common.Component
