@@ -8,5 +8,5 @@ interface AgentData {
     fun masterPassword(): String
     fun serverName(): String
     fun interfaces(): String
-    fun networkInterfaceOverride() : String?
+    fun ipv4InterfaceOverride() : String?
 }

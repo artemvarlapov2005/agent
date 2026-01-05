@@ -4,6 +4,7 @@ import org.matkini.ConfigFile
 import org.matkini.Reader
 import org.matkini.Writer
 import org.matkini.shared.AgentData
+import org.matkini.shared.ExchangeInterfaceDto
 import ru.tinkoff.kora.application.graph.GraphInterceptor
 import ru.tinkoff.kora.common.Component
 import ru.tinkoff.kora.config.common.annotation.ConfigSource
@@ -32,3 +33,6 @@ class InterfaceStore(private val agentData: AgentData) {
 }
 
 fun computePath(basePath: Path, interfaceName: String) = basePath.resolve("$interfaceName.conf")
+
+fun Pair<String, ConfigFile>.toExchange() : ExchangeInterfaceDto =
+    ExchangeInterfaceDto(this.first, this.second)

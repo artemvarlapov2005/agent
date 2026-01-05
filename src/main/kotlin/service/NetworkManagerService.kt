@@ -1,13 +1,12 @@
 package org.matkini.service
 
-import org.matkini.IpAddress
 import org.matkini.adapter.NetworkManagerAdapter
 import org.matkini.shared.ExchangeInterfaceDto
 import ru.tinkoff.kora.common.Component
 
 @Component
 class NetworkManagerService(
-    val networkManagerAdapter: NetworkManagerAdapter
+    private val networkManagerAdapter: NetworkManagerAdapter
 ) {
     fun exchangeConfig(current: List<ExchangeInterfaceDto>?) : List<ExchangeInterfaceDto> = runCatching {
         networkManagerAdapter.exchangeConfig(current)

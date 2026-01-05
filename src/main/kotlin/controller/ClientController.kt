@@ -2,6 +2,7 @@ package org.matkini.controller
 
 import org.matkini.shared.ClientResult
 import org.matkini.action.PutClientAction
+import ru.tinkoff.kora.application.graph.GraphInterceptor
 import ru.tinkoff.kora.common.Component
 import ru.tinkoff.kora.http.common.HttpMethod
 import ru.tinkoff.kora.http.common.annotation.HttpRoute

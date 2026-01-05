@@ -17,15 +17,19 @@ fun isPackageInstalled(packageName: String): Boolean = runCatching {
     return false
 }
 
-fun installPackage() =
-    (isPackageInstalled("amneziawg") ||
-    (
-        !runCommandBoolean("sudo", "apt-get", "update") ||
-        !runCommandBoolean("sudo", "apt-get", "install", "-y", "software-properties-common") ||
-        !runCommandBoolean("sudo", "add-apt-repository", "-y", "ppa:amnezia/ppa") ||
-        !runCommandBoolean("sudo", "apt-get", "update") ||
-        !runCommandBoolean("sudo", "apt-get", "install", "-y", "amneziawg")
-    )).let { require(it) }
+fun installPackage() {
+    if (isPackageInstalled("amneziawg")) return
+
+    runCommandThrow("sudo", "apt-get", "update")
+    runCommandThrow("sudo", "apt-get", "install", "-y", "software-properties-common")
+    runCommandThrow("sudo", "add-apt-repository", "-y", "ppa:amnezia/ppa")
+    runCommandThrow("sudo", "apt-get", "update")
+    runCommandThrow("sudo", "apt-get", "install", "-y", "amneziawg")
+
+    if (!isPackageInstalled("amneziawg")) {
+        throw error("Failed to install amneziawg")
+    }
+}
 
 fun createFileIfNotExists(path: Path) = {
     if (!Files.exists(path)) {
@@ -34,22 +38,25 @@ fun createFileIfNotExists(path: Path) = {
     }
 }
 
-fun enableService(configFolder : Path, interfaceName: String) = runCatching {
+fun enableService(configFolder : Path, interfaceName: String) {
     val configPath = computePath(configFolder, interfaceName)
 
-    if (!Files.exists(configPath)) {
-        Files.createDirectories(configPath.parent)
-        Files.createFile(configPath)
-    }
+    createFileIfNotExists(configPath)
 
-    runCommandUnit("sudo", "systemctl", "enable", getUnit(interfaceName))
-}.getOrThrow()
+    runCommandThrow("sudo", "systemctl", "enable", getUnit(interfaceName))
+}
 
-fun reloadService(interfaceName: String) = runCatching {
-    runCommandUnit("sudo", "systemctl", "reload", getUnit(interfaceName))
-}.getOrThrow()
+fun reloadService(interfaceName: String) {
+    runCommandThrow("sudo", "systemctl", "reload", getUnit(interfaceName))
+}
 
-fun runCommandBoolean(vararg command: String): Boolean = runCommand(*command).first
+fun restartService(interfaceName: String) = {
+    runCommandThrow("sudo", "systemctl", "restart", getUnit(interfaceName))
+}
+
+fun runCommandThrow(vararg command: String) = runCommand(*command).let {
+    if (it.first) it.second else throw error(it.second.joinToString("\n"))
+}
 
 private fun getUnit(interfaceName: String) = "awg-quick@$interfaceName"
 
@@ -62,5 +69,3 @@ fun runCommand(vararg command: String): Pair<Boolean, List<String>> =
         val output = process.inputStream.bufferedReader().lines().toList()
         return (exitCode == 0) to output
     }.getOrThrow()
-
-fun runCommandUnit(vararg command: String) = require(runCommandBoolean(*command))

@@ -34,6 +34,7 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
     implementation("org.matkini:AWG-API:1.0-SNAPSHOT")
     implementation("ru.tinkoff.kora:cache-caffeine")
+    implementation("ru.tinkoff.kora:scheduling-jdk")
 }
 
 kotlin {

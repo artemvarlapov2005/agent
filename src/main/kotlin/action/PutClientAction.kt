@@ -17,7 +17,7 @@ class PutClientAction(
 ) {
     fun put(request: PutClientRequest) : ClientResult? {
         val config = interfaceStore.get(request.interfaceName)
-            ?: throw IllegalArgumentException("Interface name to found")
+            ?: error("Interface name to found")
 
         val configPublic = getPublic(config.privateKey())
 
