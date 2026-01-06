@@ -2,13 +2,13 @@ package org.matkini.service
 
 import org.matkini.ConfigFile
 import org.matkini.shared.AgentData
+import org.matkini.shared.ExchangeInterfaceDto
 import org.matkini.shared.enableService
 import org.matkini.shared.getDefaultIPv4Interface
 import org.matkini.shared.installPackage
-import org.matkini.shared.isPackageInstalled
 import org.matkini.shared.reloadService
 import org.matkini.shared.restartService
-import org.matkini.toDecoded
+import org.slf4j.LoggerFactory
 import ru.tinkoff.kora.application.graph.GraphInterceptor
 import ru.tinkoff.kora.common.Component
 import ru.tinkoff.kora.scheduling.jdk.annotation.ScheduleAtFixedRate
@@ -21,20 +21,35 @@ class SupportService(
     private val networkManagerService: NetworkManagerService,
     private val agentData: AgentData
 ) {
+    private val log = LoggerFactory.getLogger(SupportService::class.java)
+
     fun updateInterfaces() {
+        log.info("Производится обновление интерфейсов")
         val interfaceName = agentData.ipv4InterfaceOverride() ?: getDefaultIPv4Interface()
 
-        val networkConfigs = interfaceStore.getAll()
-        val newConfigs = networkManagerService.exchangeConfig(networkConfigs.map {
-            it.toPair().toExchange()
-        })
+        log.info("Внешний интерфейс: $interfaceName")
+
+        val networkConfigs = interfaceStore.getAllInterfaces()
+
+        val mapping = interfaceStore.getInterfacesWithConfigs()
+
+        log.info("Прочитано интерфейсов: ${networkConfigs.size}")
+
+        val newConfigs = networkManagerService.exchangeConfig(
+            networkConfigs.map {
+                ExchangeInterfaceDto(
+                    it,
+                    mapping[it]
+                )
+            }
+        )
 
         val updatedConfigs = newConfigs.map {
-            val decodedConfig = it.config.toDecoded(agentData.masterPassword());
+            log.info("Обработка полученного интерфейса ${it.name}")
             it.copy(
-                config = decodedConfig.copy(
-                    interfaceSection = decodedConfig.interfaceSection.copy(
-                        additionalProperties = decodedConfig.interfaceSection.additionalProperties?.mapValues {
+                config = it.config?.copy(
+                    interfaceSection = it.config.interfaceSection.copy(
+                        additionalProperties = it.config.interfaceSection.additionalProperties?.mapValues {
                             it.value.map {
                                 it.replace("*currInt", interfaceName)
                             }
@@ -45,21 +60,31 @@ class SupportService(
         }
 
         updatedConfigs.forEach {
-            if (it.config.compareShouldRestart(networkConfigs[it.name])) {
+            if (it.config != null && it.config.compareShouldRestart(mapping[it.name]) == true) {
+                log.info("Полный перезапуск для интерфейса: ${it.name}")
                 interfaceStore.update(it.name, it.config)
                 restartService(it.name)
-            } else if (it.config != networkConfigs[it.name]) {
+                log.info("Полный перезапуск для интерфейса завершен: ${it.name}")
+            } else if (it.config != null && it.config != mapping[it.name]) {
+                log.info("Обновление для интерфейса: ${it.name}")
                 interfaceStore.update(it.name, it.config)
                 reloadService(it.name)
+                log.info("Обновление для интерфейса завершено: ${it.name}")
             }
         }
+
+        log.info("Завершено обновление интерфейсов")
     }
 
     fun initCheckPipeline() {
+        log.info("Начата инициализация агента")
         installPackage()
-
-        interfaceStore.getAll().forEach {
-            enableService(Path.of(agentData.folder()), it.key)
+        log.info("AWG успешно установлено")
+        interfaceStore.getAllInterfaces().forEach {
+            log.info("Включаю интерфейс $it")
+            enableService(Path.of(agentData.folder()), it)
+            restartService(it)
+            log.info("Включен интерфейс $it")
         }
 
         updateInterfaces()
@@ -73,10 +98,11 @@ class SupportServiceGraphInterceptor : GraphInterceptor<SupportService> {
         return value
     }
 
-    override fun release(value: SupportService?): SupportService? {
+    override fun release(value: SupportService?): SupportService? = runCatching {
         value?.updateInterfaces()
         return value
-    }
+    }.getOrElse { value }
+
 }
 
 @Component

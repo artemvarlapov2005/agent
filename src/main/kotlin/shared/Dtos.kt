@@ -10,4 +10,4 @@ data class ClientResult(
     val ip: String,
 )
 
-data class ExchangeInterfaceDto(val name : String, val config : ConfigFile)
+data class ExchangeInterfaceDto(val name : String, val config : ConfigFile?)

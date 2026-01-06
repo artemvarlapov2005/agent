@@ -5,11 +5,15 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 fun getDefaultIPv4Interface(): String =
-    Files.lines(Path.of("/proc/net/route")).toList().firstOrNull {
+    Files.lines(Path.of("/proc/net/route")).toList().map {
         val cols = it.split("\t")
 
-        cols.size > 1 && cols[1] == "00000000"
-    } ?: throw error("No default adapter found")
+        if (cols.size > 1 && cols[1] == "00000000") {
+            cols[0]
+        } else {
+            null
+        }
+    }.firstOrNull { it != null } ?: throw error("No default adapter found")
 
 fun isPackageInstalled(packageName: String): Boolean = runCatching {
     runCommand("apt-cache", "policy", packageName).second.any { it.trim().startsWith("Installed:") }

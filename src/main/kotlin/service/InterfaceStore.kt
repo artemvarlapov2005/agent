@@ -10,29 +10,59 @@ import ru.tinkoff.kora.common.Component
 import ru.tinkoff.kora.config.common.annotation.ConfigSource
 import java.nio.file.Path
 import kotlin.io.path.createFile
+import kotlin.text.set
 
 @Component
 class InterfaceStore(private val agentData: AgentData) {
-    private val diskData: MutableMap<String, ConfigFile> =
-        agentData.interfaces().split(",").associate {
-            it to Reader.readFile(getPath(it))
-    }.toMutableMap()
+    private val interfaces = agentData.interfaces().split(",")
+    private var configMapping : MutableMap<String, ConfigFile> = mutableMapOf()
 
-    fun getAll() = diskData.toMap()
+    fun getAllInterfaces() = interfaces
 
-    fun get(interfaceName: String) = diskData[interfaceName]
+    fun getInterfacesWithConfigs() = configMapping.toMap()
+
+    fun get(interfaceName: String) : ConfigFile? = configMapping[interfaceName]
 
     fun update(
         interfaceName: String,
-        configFile : ConfigFile) =
-        Writer.writeToFile(configFile, getPath(interfaceName)).also {
-            diskData[interfaceName] = configFile
-        }
+        configFile : ConfigFile,
+        commit: Boolean = true) {
+        configMapping[interfaceName] = configFile
+
+        if (commit) Writer.writeToFile(configFile, getPath(interfaceName))
+    }
 
     private fun getPath(interfaceName: String) = computePath(Path.of(agentData.folder()), interfaceName)
 }
 
-fun computePath(basePath: Path, interfaceName: String) = basePath.resolve("$interfaceName.conf")
+@Component
+class InterfaceStoreInitParsing(
+    val agentData: AgentData
+) : GraphInterceptor<InterfaceStore> {
+    override fun init(value: InterfaceStore?): InterfaceStore? {
+        val interfaces = value?.getAllInterfaces()
 
-fun Pair<String, ConfigFile>.toExchange() : ExchangeInterfaceDto =
-    ExchangeInterfaceDto(this.first, this.second)
+        interfaces?.forEach {
+            runCatching {
+                value.update(
+                    it,
+                    Reader.readFile(computePath(Path.of(agentData.folder()), it)),
+                    false
+                )
+            }.onFailure { e ->
+                e.printStackTrace()
+            }
+        }
+
+        return value
+    }
+
+    override fun release(value: InterfaceStore?): InterfaceStore? {
+        return value
+    }
+
+}
+
+
+
+fun computePath(basePath: Path, interfaceName: String) = basePath.resolve("$interfaceName.conf")
