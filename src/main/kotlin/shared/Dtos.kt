@@ -9,5 +9,3 @@ data class ClientResult(
     val pubKey: String,
     val ip: String,
 )
-
-data class ExchangeInterfaceDto(val name : String, val config : ConfigFile?)

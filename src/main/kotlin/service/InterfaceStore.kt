@@ -4,7 +4,10 @@ import org.matkini.ConfigFile
 import org.matkini.Reader
 import org.matkini.Writer
 import org.matkini.shared.AgentData
-import org.matkini.shared.ExchangeInterfaceDto
+import org.matkini.shared.enableService
+import org.matkini.shared.installPackage
+import org.matkini.shared.restartService
+import org.slf4j.LoggerFactory
 import ru.tinkoff.kora.application.graph.GraphInterceptor
 import ru.tinkoff.kora.common.Component
 import ru.tinkoff.kora.config.common.annotation.ConfigSource
@@ -36,11 +39,23 @@ class InterfaceStore(private val agentData: AgentData) {
 }
 
 @Component
-class InterfaceStoreInitParsing(
+class InterfaceStoreInit(
     val agentData: AgentData
 ) : GraphInterceptor<InterfaceStore> {
+    private val log = LoggerFactory.getLogger(InterfaceStore::class.java)
+
     override fun init(value: InterfaceStore?): InterfaceStore? {
         val interfaces = value?.getAllInterfaces()
+
+        log.info("Начата инициализация агента")
+        installPackage()
+        log.info("AWG успешно установлено")
+        interfaces?.forEach {
+            log.info("Включаю интерфейс $it")
+            enableService(Path.of(agentData.folder()), it)
+            restartService(it)
+            log.info("Включен интерфейс $it")
+        }
 
         interfaces?.forEach {
             runCatching {

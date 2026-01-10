@@ -6,7 +6,5 @@ import ru.tinkoff.kora.config.common.annotation.ConfigSource
 interface AgentData {
     fun folder(): String
     fun masterPassword(): String
-    fun serverName(): String
     fun interfaces(): String
-    fun ipv4InterfaceOverride() : String?
 }
