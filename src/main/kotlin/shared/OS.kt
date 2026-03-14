@@ -5,15 +5,12 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 fun getDefaultIPv4Interface(): String =
-    Files.lines(Path.of("/proc/net/route")).toList().map {
-        val cols = it.split("\t")
-
-        if (cols.size > 1 && cols[1] == "00000000") {
-            cols[0]
-        } else {
-            null
-        }
-    }.firstOrNull { it != null } ?: throw error("No default adapter found")
+    Files.lines(Path.of("/proc/net/route")).use { stream ->
+        stream.toList().map {
+            val cols = it.split("\t")
+            if (cols.size > 1 && cols[1] == "00000000") cols[0] else null
+        }.firstOrNull { it != null }
+    } ?: throw error("No default adapter found")
 
 fun isPackageInstalled(packageName: String): Boolean = runCatching {
     runCommand("apt-cache", "policy", packageName).second.any { it.trim().startsWith("Installed:") }
@@ -35,7 +32,7 @@ fun installPackage() {
     }
 }
 
-fun createFileIfNotExists(path: Path) = {
+fun createFileIfNotExists(path: Path) {
     if (!Files.exists(path)) {
         path.parent?.let { Files.createDirectories(it) }
         Files.createFile(path)
@@ -54,7 +51,7 @@ fun reloadService(interfaceName: String) {
     runCommandThrow("sudo", "systemctl", "reload", getUnit(interfaceName))
 }
 
-fun restartService(interfaceName: String) = {
+fun restartService(interfaceName: String) {
     runCommandThrow("sudo", "systemctl", "restart", getUnit(interfaceName))
 }
 

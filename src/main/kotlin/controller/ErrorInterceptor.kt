@@ -23,7 +23,7 @@ class ErrorInterceptor : HttpServerInterceptor {
         chain: HttpServerInterceptor.InterceptChain
     ): CompletionStage<HttpServerResponse> {
         return chain.process(context, request).exceptionally { e ->
-            val error = if (e is CompletionException) e.cause!! else e
+            val error = if (e is CompletionException) e.cause ?: e else e
             if (error is HttpServerResponseException) {
                 return@exceptionally error
             }

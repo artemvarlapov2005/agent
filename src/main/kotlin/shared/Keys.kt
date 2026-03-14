@@ -1,4 +1,4 @@
-package org.matkini.util
+package org.matkini.shared
 
 import java.util.Base64
 import org.bouncycastle.math.ec.rfc7748.X25519

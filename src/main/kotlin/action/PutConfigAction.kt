@@ -24,26 +24,22 @@ class PutConfigAction(
 
         val updatedConfigs = configFile.toDecoded(agentData.masterPassword()).copy(
             interfaceSection = configFile.interfaceSection.copy(
-                additionalProperties = configFile.interfaceSection.additionalProperties?.mapValues {
-                    it.value.map {
-                        it.replace("*ipv4", interfaceName)
-                    }
+                additionalProperties = configFile.interfaceSection.additionalProperties?.mapValues { (_, value) ->
+                    value.map { it.replace("*ipv4", interfaceName) }
                 }
             )
         )
 
-        updatedConfigs.let {
-            if (it.compareShouldRestart(current) == true) {
-                log.info("Полный перезапуск для интерфейса: $interfaceName")
-                interfaceStore.update(interfaceName, it)
-                restartService(interfaceName)
-                log.info("Полный перезапуск для интерфейса завершен: $interfaceName")
-            } else if (it != current) {
-                log.info("Обновление для интерфейса: $interfaceName")
-                interfaceStore.update(interfaceName, it)
-                reloadService(interfaceName)
-                log.info("Обновление для интерфейса завершено: $interfaceName")
-            }
+        if (updatedConfigs.compareShouldRestart(current)) {
+            log.info("Полный перезапуск для интерфейса: $interfaceName")
+            interfaceStore.update(interfaceName, updatedConfigs)
+            restartService(interfaceName)
+            log.info("Полный перезапуск для интерфейса завершен: $interfaceName")
+        } else if (updatedConfigs != current) {
+            log.info("Обновление для интерфейса: $interfaceName")
+            interfaceStore.update(interfaceName, updatedConfigs)
+            reloadService(interfaceName)
+            log.info("Обновление для интерфейса завершено: $interfaceName")
         }
     }
 }

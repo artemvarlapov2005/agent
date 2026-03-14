@@ -9,7 +9,7 @@ class IpAllocator {
         busyIps: Set<IpAddress>,
         subNet: IpAddress
     ) : IpAddress? {
-        val used = busyIps.map { it.ipToInt() }
+        val used = busyIps.mapTo(HashSet()) { it.ipToInt() }
 
         return IpAddress.fromIpInt(
             (subNet.getNetworkInt() + 1..subNet.getBroadcastInt() - 1)
