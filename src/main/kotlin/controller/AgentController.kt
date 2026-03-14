@@ -15,22 +15,21 @@ import ru.tinkoff.kora.json.common.annotation.Json
 @Component
 @HttpController
 class ClientController(
-    val putClientAction: PutClientAction,
-    val putConfigAction: PutConfigAction) {
+    private val putClientAction: PutClientAction,
+    private val putConfigAction: PutConfigAction) {
     private val log = LoggerFactory.getLogger(ClientController::class.java)
 
     @HttpRoute(method = HttpMethod.PUT, path = "/client")
     @Json
     fun putClient(
        @Json body : PutClientRequest
-    ): ClientResult = runCatching {
-            log.info("Получен запрос на добавление клиента с pubKey ${body.publicKey} " +
-                    "для интерфейса ${body.interfaceName}")
-            require(body.publicKey.length == 44)
-            putClientAction.put(body)
-        }.getOrElse { e ->
-            throw e
-        } ?: throw HttpServerResponseException.of(503, "Не удалось найти свободный айпи")
+    ): ClientResult {
+        log.info("Получен запрос на добавление клиента с pubKey ${body.publicKey} " +
+                "для интерфейса ${body.interfaceName}")
+        require(body.publicKey.length == 44)
+        return putClientAction.put(body)
+            ?: throw HttpServerResponseException.of(503, "Не удалось найти свободный айпи")
+    }
 
     @HttpRoute(method = HttpMethod.POST, path = "/config")
     fun putConfig(

@@ -12,13 +12,14 @@ import ru.tinkoff.kora.application.graph.GraphInterceptor
 import ru.tinkoff.kora.common.Component
 import ru.tinkoff.kora.config.common.annotation.ConfigSource
 import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.createFile
 import kotlin.text.set
 
 @Component
 class InterfaceStore(private val agentData: AgentData) {
     private val interfaces = agentData.interfaces().split(",")
-    private var configMapping : MutableMap<String, ConfigFile> = mutableMapOf()
+    private val configMapping: MutableMap<String, ConfigFile> = ConcurrentHashMap()
 
     fun getAllInterfaces() = interfaces
 

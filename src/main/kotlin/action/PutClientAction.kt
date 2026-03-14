@@ -8,21 +8,21 @@ import org.matkini.service.InterfaceStore
 import org.matkini.shared.IpAllocator
 import org.matkini.shared.reloadService
 import org.matkini.shared.restartService
-import org.matkini.util.getPublic
-import org.matkini.util.privateKey
+import org.matkini.shared.getPublic
+import org.matkini.shared.privateKey
 import org.slf4j.LoggerFactory
 import ru.tinkoff.kora.common.Component
 
 @Component
 class PutClientAction(
-    val interfaceStore: InterfaceStore,
-    val ipAllocator: IpAllocator,
+    private val interfaceStore: InterfaceStore,
+    private val ipAllocator: IpAllocator,
 ) {
     private val log = LoggerFactory.getLogger(PutClientAction::class.java)
 
     fun put(request: PutClientRequest) : ClientResult? {
         val config = interfaceStore.get(request.interfaceName)
-            ?: error("Interface name to found")
+            ?: error("Interface name not found")
 
         log.info("Текущий конфиг успешно спарсен для интерфейса ${request.interfaceName}")
 
